@@ -8,7 +8,7 @@
       />
 
       <div class="mb-8 text-center">
-        <div class="text-body-2 font-weight-light mb-n1">Welcome to</div>
+        <div class="text-body-2 font-weight-light mb-n1">{{ t('welcome_to') }}</div>
         <h1 class="text-h2 font-weight-bold">Vuetify</h1>
       </div>
 
@@ -61,6 +61,9 @@
 </template>
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n'
+
+  const { t } = useI18n()
   const links = [
     {
       href: 'https://vuetifyjs.com/',

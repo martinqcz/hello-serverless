@@ -1,0 +1,8 @@
+{
+    "locale": {
+        "en": "English",
+        "fr": "Francais"
+    },
+    "greeting": "Hello!",
+    "welcome_to": "Welcome to"
+}
