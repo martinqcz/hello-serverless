@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.25"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.9.25"
@@ -11,7 +13,11 @@ plugins {
 version = "0.1"
 group = "com.qapil.hello"
 
-val kotlinVersion=project.properties.get("kotlinVersion")
+val javaVersion: String by project
+val kotlinVersion: String by project
+val kotlinLoggingVersion: String by project
+val striktVersion: String by project
+
 repositories {
     mavenCentral()
 }
@@ -45,21 +51,32 @@ dependencies {
     testImplementation("org.testcontainers:localstack")
     testImplementation("org.testcontainers:testcontainers")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingVersion")
+    implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
+    testImplementation("io.strikt:strikt-core:$striktVersion")
 }
 
 
 application {
     mainClass = "com.qapil.hello.ApplicationKt"
 }
+
 java {
-    sourceCompatibility = JavaVersion.toVersion("21")
+    sourceCompatibility = JavaVersion.toVersion(javaVersion)
+}
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(javaVersion)
+    }
 }
 
 
 graalvmNative.toolchainDetection = false
 
 micronaut {
-    runtime("lambda_provided")
+    runtime("netty")
+    // runtime("lambda_provided")
     testRuntime("junit5")
     processing {
         incremental(true)
@@ -79,14 +96,22 @@ micronaut {
     }
 }
 
+graalvmNative {
+    binaries {
+        named("main") {
+            imageName.set("hello-lambda-native")
+        }
+        all {
+            buildArgs.add("--initialize-at-build-time=ch.qos.logback,org.slf4j")
+        }
+    }
+}
 
 tasks.named<io.micronaut.gradle.docker.NativeImageDockerfile>("dockerfileNative") {
-    jdkVersion = "21"
+    jdkVersion.set(javaVersion)
     args(
         "-XX:MaximumHeapSizePercent=80",
         "-Dio.netty.allocator.numDirectArenas=0",
         "-Dio.netty.noPreferDirect=true"
     )
 }
-
-
