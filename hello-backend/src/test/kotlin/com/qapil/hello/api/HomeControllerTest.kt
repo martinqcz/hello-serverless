@@ -3,7 +3,7 @@ package com.qapil.hello.api
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import io.micronaut.function.aws.proxy.MockLambdaContext
 import io.micronaut.function.aws.proxy.payload1.ApiGatewayProxyRequestEventFunction
-import org.junit.jupiter.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class HomeControllerTest {
@@ -16,8 +16,8 @@ class HomeControllerTest {
         request.path = "/api/v1/hello"
         val response = handler.handleRequest(request, MockLambdaContext())
 
-        Assertions.assertEquals(200, response.statusCode)
-        Assertions.assertEquals("{\"message\":\"Hello World\"}", response.body)
+        assertThat(response.statusCode).isEqualTo(200)
+        assertThat(response.body).isEqualTo("{\"message\":\"Hello World\"}")
         handler.applicationContext.close()
     }
 
@@ -30,8 +30,8 @@ class HomeControllerTest {
         request.queryStringParameters = mapOf("name" to "Micronaut")
         val response = handler.handleRequest(request, MockLambdaContext())
 
-        Assertions.assertEquals(200, response.statusCode)
-        Assertions.assertEquals("{\"message\":\"Hello Micronaut\"}", response.body)
+        assertThat(response.statusCode).isEqualTo(200)
+        assertThat(response.body).isEqualTo("{\"message\":\"Hello Micronaut\"}")
         handler.applicationContext.close()
     }
 }

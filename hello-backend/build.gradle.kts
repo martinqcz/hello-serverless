@@ -17,6 +17,7 @@ val javaVersion: String by project
 val kotlinVersion: String by project
 val kotlinLoggingVersion: String by project
 val striktVersion: String by project
+val assertjVersion: String by project
 
 repositories {
     mavenCentral()
@@ -55,6 +56,7 @@ dependencies {
     implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingVersion")
     implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
     testImplementation("io.strikt:strikt-core:$striktVersion")
+    testImplementation("org.assertj:assertj-core:$assertjVersion")
 }
 
 
