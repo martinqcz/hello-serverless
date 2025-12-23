@@ -1,4 +1,4 @@
-package com.qapil.hello
+package com.qapil.hello.dynamodb
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micronaut.context.condition.Condition

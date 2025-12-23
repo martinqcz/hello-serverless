@@ -1,4 +1,4 @@
-package com.qapil.hello;
+package com.qapil.hello.dynamodb
 
 import io.micronaut.context.annotation.Requirements
 import io.micronaut.context.annotation.Requires
@@ -10,5 +10,8 @@ import jakarta.inject.Singleton
         Requires(condition = CIAwsRegionProviderChainCondition::class),
 )
 @Singleton
-class DynamoRepository(private val dynamoDbClient: DynamoDbClient, private val dynamoConfiguration: DynamoConfiguration)  {
+class DynamoRepository(
+        private val dynamoDbClient: DynamoDbClient,
+        private val dynamoConfiguration: DynamoConfiguration,
+)  {
 }

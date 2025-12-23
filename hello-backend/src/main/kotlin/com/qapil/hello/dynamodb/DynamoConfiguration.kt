@@ -1,4 +1,4 @@
-package com.qapil.hello
+package com.qapil.hello.dynamodb
 
 import io.micronaut.context.annotation.Requires
 import jakarta.validation.constraints.NotBlank
