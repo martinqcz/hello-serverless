@@ -6,6 +6,16 @@
 - [Micronaut Guides](https://guides.micronaut.io/index.html)
 ---
 
+## Deployment with GraalVM
+
+If you want to deploy to AWS Lambda as a GraalVM native image, run:
+
+```bash
+./gradlew buildNativeLambda -Pmicronaut.runtime=lambda_provided
+```
+
+This will build the GraalVM native image inside a docker container and generate the `function.zip` ready for the deployment.
+
 ## Handler
 
 Handler: io.micronaut.function.aws.proxy.payload1.ApiGatewayProxyRequestEventFunction
