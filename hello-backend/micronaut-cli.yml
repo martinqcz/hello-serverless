@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: com.qapil.hello
+testFramework: junit
+sourceLanguage: kotlin
+buildTool: gradle_kotlin
+features: [app-name, arm, aws-lambda, aws-lambda-events-serde, aws-lambda-handler-default, aws-v2-sdk, dynamodb, graalvm, gradle, http-client, junit, kotlin, kotlin-application, kotlin-extension-functions, ksp, localstack, logback, micronaut-aot, micronaut-build, micronaut-http-validation, mockito, readme, serialization-jackson, shade, static-resources, test-resources, testcontainers, validation, yaml, yaml-build]
