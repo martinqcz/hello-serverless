@@ -1,0 +1,21 @@
+version = 0.1
+
+[default]
+[default.global.parameters]
+stack_name = "hello-app-prod"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+
+[default.deploy.parameters]
+parameter_overrides = [
+    "DomainName=hello-app.qapil.com",
+    "CertificateArn=<REPLACE_WITH_ACM_CERT_ARN>",
+    "Environment=prod"
+]
+resolve_s3 = true
+
+[default.build.parameters]
+cached = true
+parallel = true
