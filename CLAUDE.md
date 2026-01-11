@@ -140,6 +140,15 @@ bun preview
 - ESLint config: `eslint.config.js`
 - API proxy configured to backend at localhost:8080
 
+### API Calls
+- Centralized axios instance configured in `src/plugins/axios.ts`
+- Base URL configured via `VITE_API_BASE_URL` environment variable (`.env`, `.env.production`)
+- Import API client: `import { api } from '@/plugins'`
+- Make requests: `api.get('/v1/endpoint')`, `api.post('/v1/endpoint', data)`
+- Base URL is automatically prepended (e.g., `/v1/hello` → `/api/v1/hello`)
+- Development: Vite proxy forwards `/api` to `http://127.0.0.1:8080`
+- Production: CloudFront routes `/api` to API Gateway
+
 ## Architecture Notes
 
 ### Frontend-Backend Communication

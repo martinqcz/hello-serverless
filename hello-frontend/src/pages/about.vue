@@ -21,7 +21,7 @@
 
 <script lang="ts" setup>
   import { ref, onMounted } from 'vue'
-  import axios from 'axios'
+  import { api } from '@/plugins'
 
   const message = ref<string>('')
   const loading = ref<boolean>(false)
@@ -30,7 +30,7 @@
   onMounted(async () => {
     loading.value = true
     try {
-      const response = await axios.get('/api/v1/hello', {
+      const response = await api.get('/v1/hello', {
         params: { name: 'User' },
       })
       message.value = response.data.message
