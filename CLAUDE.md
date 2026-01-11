@@ -171,11 +171,25 @@ bun preview
 
 ## Testing
 
+### Testing Requirements
+**IMPORTANT**: When changing implementation code (backend or frontend):
+1. **Always run tests** after making changes to ensure nothing breaks
+2. **Fix any failing tests** immediately - update test assertions or fix the implementation
+3. **Update test expectations** when intentionally changing behavior
+4. Never leave tests in a failing state
+
+### Backend Testing
 Backend tests use:
 - JUnit 5
 - Mockito for mocking
 - Strikt for assertions (Kotlin-friendly)
 - TestContainers with LocalStack for DynamoDB integration tests
+
+Run backend tests:
+```bash
+cd hello-backend
+./gradlew test
+```
 
 ## Build Artifacts
 
