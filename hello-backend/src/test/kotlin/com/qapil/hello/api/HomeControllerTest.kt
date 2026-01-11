@@ -17,7 +17,7 @@ class HomeControllerTest {
         val response = handler.handleRequest(request, MockLambdaContext())
 
         assertThat(response.statusCode).isEqualTo(200)
-        assertThat(response.body).isEqualTo("{\"message\":\"Hello World\"}")
+        assertThat(response.body).isEqualTo("{\"message\":\"Hello World from serverless backend!\"}")
         handler.applicationContext.close()
     }
 
@@ -31,7 +31,7 @@ class HomeControllerTest {
         val response = handler.handleRequest(request, MockLambdaContext())
 
         assertThat(response.statusCode).isEqualTo(200)
-        assertThat(response.body).isEqualTo("{\"message\":\"Hello Micronaut\"}")
+        assertThat(response.body).isEqualTo("{\"message\":\"Hello Micronaut from serverless backend!\"}")
         handler.applicationContext.close()
     }
 }

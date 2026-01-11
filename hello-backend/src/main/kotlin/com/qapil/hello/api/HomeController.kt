@@ -10,8 +10,8 @@ open class HomeController {
 
     @Get("/hello")
     fun index(@QueryValue(defaultValue = "World") name: String): Map<String, String> {
-        logger.info { "Hello ${name}!" }
-        return mapOf("message" to "Hello ${name}!")
+        logger.info { "Hello ${name} from serverless backend!" }
+        return mapOf("message" to "Hello ${name} from serverless backend!")
     }
 
     companion object {
