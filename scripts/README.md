@@ -15,27 +15,34 @@ This directory contains automation scripts for building, deploying, and undeploy
 |--------|---------|------------|
 | `build-backend.sh` | Build GraalVM native Lambda (ARM64) | None |
 | `build-frontend.sh` | Build Vue 3 frontend with type checking | None |
-| `deploy-cert.sh` | Deploy ACM certificate stack | `[domain] [env]` |
-| `deploy-app.sh` | Deploy application infrastructure | `[domain] [env]` |
+| `deploy-cert.sh` | Deploy ACM certificate stack | `[env]` |
+| `deploy-app.sh` | Deploy application infrastructure | `[env]` |
 | `deploy-frontend.sh` | Upload frontend to S3 + invalidate CloudFront | `[env]` |
 | `undeploy-cert.sh` | Delete certificate stack | `[env]` |
 | `undeploy-app.sh` | Delete application stack | `[env]` |
 | `undeploy-frontend.sh` | Empty S3 bucket (remove all files) | `[env]` |
 
-**Default values**:
-- `domain`: `hello-app.qapil.com`
-- `env`: `prod`
+**Environment Configuration**:
+
+Domain names are configured in `env-config.sh`:
+```bash
+declare -A ENV_DOMAINS
+ENV_DOMAINS[dev]="hello-dev.qapil.com"
+ENV_DOMAINS[prod]="hello-app.qapil.com"
+```
+
+Valid environments: `dev`, `prod`
 
 **Examples**:
 ```bash
-# Deploy production to hello-app.qapil.com (using defaults)
-./deploy-cert.sh
-./deploy-app.sh
-./deploy-frontend.sh
+# Deploy production environment
+./deploy-cert.sh prod
+./deploy-app.sh prod
+./deploy-frontend.sh prod
 
-# Deploy dev environment to custom domain
-./deploy-cert.sh hello-dev.qapil.com dev
-./deploy-app.sh hello-dev.qapil.com dev
+# Deploy dev environment
+./deploy-cert.sh dev
+./deploy-app.sh dev
 ./deploy-frontend.sh dev
 ```
 
@@ -50,11 +57,11 @@ The certificate is now **automatically created and managed** by CloudFormation t
 ```bash
 cd scripts
 
-# Deploy certificate for production (default: hello-app.qapil.com)
-./deploy-cert.sh
+# Deploy certificate for production
+./deploy-cert.sh prod
 
-# OR deploy for custom domain/environment
-./deploy-cert.sh hello-dev.qapil.com dev
+# OR deploy for dev environment
+./deploy-cert.sh dev
 ```
 
 The script will:
@@ -152,7 +159,7 @@ aws cloudformation describe-stacks \
 
 # 4. If >1 hour, delete and recreate certificate stack
 ./undeploy-cert.sh dev
-./deploy-cert.sh hello-dev.qapil.com dev
+./deploy-cert.sh dev
 ```
 
 ### Certificate Lifecycle
@@ -179,7 +186,7 @@ cd scripts
 #### 2. Deploy Certificate Stack
 ```bash
 cd scripts
-./deploy-cert.sh hello-app.qapil.com prod  # ~1 minute
+./deploy-cert.sh prod  # ~1 minute
 ```
 
 **Output will include**:
@@ -193,7 +200,7 @@ cd scripts
 #### 3. Deploy Application Stack
 ```bash
 cd scripts
-./deploy-app.sh hello-app.qapil.com prod  # ~10-15 minutes (first deployment)
+./deploy-app.sh prod  # ~10-15 minutes (first deployment)
 ```
 
 The script will:
@@ -236,7 +243,7 @@ cd scripts
 
 # Update backend code
 ./build-backend.sh
-./deploy-app.sh hello-app.qapil.com prod
+./deploy-app.sh prod
 
 # Update frontend code
 ./build-frontend.sh
@@ -245,7 +252,7 @@ cd scripts
 
 ### Multi-Environment Deployment
 
-Deploy to multiple environments (dev, staging, prod):
+Deploy to multiple environments (dev, prod):
 
 ```bash
 cd scripts
@@ -255,15 +262,15 @@ cd scripts
 ./build-frontend.sh
 
 # Deploy dev environment
-./deploy-cert.sh hello-dev.qapil.com dev
+./deploy-cert.sh dev
 # (Wait for certificate validation)
-./deploy-app.sh hello-dev.qapil.com dev
+./deploy-app.sh dev
 ./deploy-frontend.sh dev
 
 # Deploy prod environment
-./deploy-cert.sh hello-app.qapil.com prod
+./deploy-cert.sh prod
 # (Wait for certificate validation)
-./deploy-app.sh hello-app.qapil.com prod
+./deploy-app.sh prod
 ./deploy-frontend.sh prod
 ```
 
@@ -507,7 +514,7 @@ cd scripts
 ./build-frontend.sh
 
 # 2. Deploy application (certificate already exists and is ISSUED)
-./deploy-app.sh hello-app.qapil.com prod
+./deploy-app.sh prod
 
 # 3. Deploy frontend
 ./deploy-frontend.sh prod
@@ -524,11 +531,11 @@ cd scripts
 ./build-frontend.sh
 
 # 2. Deploy certificate
-./deploy-cert.sh hello-app.qapil.com prod
+./deploy-cert.sh prod
 # (Wait for certificate validation - same DNS record as before)
 
 # 3. Deploy application
-./deploy-app.sh hello-app.qapil.com prod
+./deploy-app.sh prod
 
 # 4. Deploy frontend
 ./deploy-frontend.sh prod
@@ -567,11 +574,11 @@ cd scripts
 # Build
 ./build-backend.sh && ./build-frontend.sh
 
-# Deploy (replace with your domain and environment)
-./deploy-cert.sh hello-app.qapil.com prod
+# Deploy
+./deploy-cert.sh prod
 # (Add DNS validation CNAME, wait for ISSUED status)
 
-./deploy-app.sh hello-app.qapil.com prod
+./deploy-app.sh prod
 ./deploy-frontend.sh prod
 ```
 
@@ -579,7 +586,7 @@ cd scripts
 ```bash
 cd scripts
 ./build-backend.sh
-./deploy-app.sh hello-app.qapil.com prod
+./deploy-app.sh prod
 ```
 
 ### Update Frontend Only
@@ -611,13 +618,13 @@ cd scripts
 ./build-backend.sh && ./build-frontend.sh
 
 # Deploy dev
-./deploy-cert.sh hello-dev.qapil.com dev
-./deploy-app.sh hello-dev.qapil.com dev
+./deploy-cert.sh dev
+./deploy-app.sh dev
 ./deploy-frontend.sh dev
 
 # Deploy prod
-./deploy-cert.sh hello-app.qapil.com prod
-./deploy-app.sh hello-app.qapil.com prod
+./deploy-cert.sh prod
+./deploy-app.sh prod
 ./deploy-frontend.sh prod
 ```
 
@@ -651,8 +658,9 @@ For infrastructure questions, refer to:
 
 ### Common Stack Names by Environment
 
-| Environment | Certificate Stack | Application Stack |
-|-------------|------------------|-------------------|
-| **dev** | `hello-cert-dev` | `hello-app-dev` |
-| **staging** | `hello-cert-staging` | `hello-app-staging` |
-| **prod** | `hello-cert-prod` | `hello-app-prod` |
+| Environment | Certificate Stack | Application Stack | Domain (from env-config.sh) |
+|-------------|------------------|-------------------|---------------------------|
+| **dev** | `hello-cert-dev` | `hello-app-dev` | `hello-dev.qapil.com` |
+| **prod** | `hello-cert-prod` | `hello-app-prod` | `hello-app.qapil.com` |
+
+To add more environments (e.g., staging), edit `env-config.sh` and add the domain mapping.

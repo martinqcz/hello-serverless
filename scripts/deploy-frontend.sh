@@ -5,18 +5,36 @@ set -euo pipefail
 #   ./deploy-frontend.sh [env]
 #
 # Examples:
+#   ./deploy-frontend.sh dev
 #   ./deploy-frontend.sh prod
+#
+# Configuration is loaded from ./env-config.sh
+
+# Load environment configuration
+source ./env-config.sh
+
+# Parse arguments
+env="${1:-}"
+
+if [[ -z "$env" ]]; then
+  echo "❌ Usage: $0 [env]"
+  echo "Valid environments: ${!ENV_DOMAINS[@]}"
+  exit 1
+fi
+
+# Validate environment
+if ! validate_env "$env"; then
+  exit 1
+fi
+
+echo "Environment: $env"
+echo ""
 
 echo "📦 Deploying frontend to S3..."
 cd ..
 
-BASE_NAME="hello"
-APP_REGION="us-east-1"
-
-env="${1:-prod}"
-
 # Get stack outputs
-app_stack="${BASE_NAME}-app-${env}"
+app_stack="${STACK_BASE_NAME}-app-${env}"
 
 echo "🔍 Fetching stack outputs..."
 BUCKET_NAME=$(aws cloudformation describe-stacks \

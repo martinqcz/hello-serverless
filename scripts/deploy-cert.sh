@@ -2,10 +2,37 @@
 set -euo pipefail
 
 # Usage:
-#   ./deploy-cert.sh   [domain] [env]
+#   ./deploy-cert.sh [env]
 #
 # Examples:
-#   ./deploy-cert.sh hello-app.qapil.com prod
+#   ./deploy-cert.sh dev
+#   ./deploy-cert.sh prod
+#
+# Domain names are configured in ./env-config.sh
+
+# Load environment configuration
+source ./env-config.sh
+
+# Parse arguments
+env="${1:-}"
+
+if [[ -z "$env" ]]; then
+  echo "❌ Usage: $0 [env]"
+  echo "Valid environments: ${!ENV_DOMAINS[@]}"
+  exit 1
+fi
+
+# Validate environment
+if ! validate_env "$env"; then
+  exit 1
+fi
+
+# Get domain from configuration
+domain=$(get_domain "$env")
+
+echo "Environment: $env"
+echo "Domain: $domain"
+echo ""
 
 echo "🚀 Deploying domain certificate with AWS SAM..."
 cd ../infra
@@ -14,13 +41,7 @@ cd ../infra
 echo "🔍 Validating SAM template..."
 sam validate --template-file cert-stack.yaml
 
-BASE_NAME="hello"
-CERT_REGION="us-east-1"
-
-domain="${1:-hello-app.qapil.com}"
-env="${2:-prod}"
-
-cert_stack="${BASE_NAME}-cert-${env}"
+cert_stack="${STACK_BASE_NAME}-cert-${env}"
 
 echo "Deploying cert stack to ${CERT_REGION}: ${cert_stack}"
 sam deploy \
@@ -60,5 +81,5 @@ aws acm describe-certificate \
 echo ""
 echo "After you add the CNAME record(s) in your DNS provider and the cert becomes ISSUED,"
 echo "run the app deploy step:"
-echo "  ./deploy-app.sh ${domain} ${env}"
+echo "  ./deploy-app.sh ${env}"
 exit 0

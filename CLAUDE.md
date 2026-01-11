@@ -199,3 +199,138 @@ Backend:
 
 Frontend:
 - Production build: `hello-frontend/dist/`
+
+## AWS Deployment
+
+### Environment Configuration
+
+Environment-to-domain mappings are configured in `scripts/env-config.sh`:
+
+```bash
+# Domain configuration per environment
+declare -A ENV_DOMAINS
+ENV_DOMAINS[dev]="hello-dev.qapil.com"
+ENV_DOMAINS[prod]="hello-app.qapil.com"
+```
+
+To add new environments or change domain names, edit this file.
+
+### Deployment Scripts
+
+All deployment scripts are located in the `scripts/` directory and take a single parameter: **environment** (`dev` or `prod`).
+
+#### 1. Build Backend Lambda
+
+```bash
+cd scripts
+./build-backend.sh
+```
+
+This creates the GraalVM native Lambda artifact at `hello-backend/build/libs/hello-backend-0.1-lambda.zip`.
+
+#### 2. Deploy Certificate (First Time Only)
+
+```bash
+cd scripts
+./deploy-cert.sh [env]
+```
+
+Examples:
+- `./deploy-cert.sh prod` - Deploy certificate for production
+- `./deploy-cert.sh dev` - Deploy certificate for development
+
+This creates an ACM certificate for the domain specified in `env-config.sh`. After running:
+1. Note the DNS CNAME record(s) shown in the output
+2. Add the CNAME record(s) to your DNS provider
+3. Wait for certificate validation (status becomes `ISSUED`)
+
+#### 3. Deploy Backend Infrastructure
+
+```bash
+cd scripts
+./deploy-app.sh [env]
+```
+
+Examples:
+- `./deploy-app.sh prod` - Deploy to production
+- `./deploy-app.sh dev` - Deploy to development
+
+This deploys:
+- Lambda function (backend API)
+- API Gateway
+- DynamoDB table
+- S3 bucket for frontend
+- CloudFront distribution
+
+After deployment:
+1. Note the CloudFrontDomain output
+2. Create DNS CNAME: `[domain] → [CloudFrontDomain]`
+
+#### 4. Build Frontend
+
+```bash
+cd hello-frontend
+bun run build
+```
+
+This creates production build in `hello-frontend/dist/`.
+
+#### 5. Deploy Frontend
+
+```bash
+cd scripts
+./deploy-frontend.sh [env]
+```
+
+Examples:
+- `./deploy-frontend.sh prod` - Deploy frontend to production
+- `./deploy-frontend.sh dev` - Deploy frontend to development
+
+This uploads the frontend build to S3 and invalidates the CloudFront cache.
+
+### Complete Deployment Flow
+
+For a fresh deployment:
+
+```bash
+# 1. Build backend
+cd scripts
+./build-backend.sh
+
+# 2. Deploy certificate (first time only)
+./deploy-cert.sh prod
+# Add DNS CNAME records and wait for validation
+
+# 3. Deploy infrastructure
+./deploy-app.sh prod
+# Add DNS CNAME for domain to CloudFront
+
+# 4. Build frontend
+cd ../hello-frontend
+bun run build
+
+# 5. Deploy frontend
+cd ../scripts
+./deploy-frontend.sh prod
+```
+
+For subsequent updates:
+
+```bash
+# Backend changes
+cd scripts
+./build-backend.sh
+./deploy-app.sh prod
+
+# Frontend changes
+cd hello-frontend
+bun run build
+cd ../scripts
+./deploy-frontend.sh prod
+```
+
+### Stack Names
+
+Stacks are named using pattern: `hello-[resource]-[env]`
+- Certificate stack: `hello-cert-prod`, `hello-cert-dev`
+- App stack: `hello-app-prod`, `hello-app-dev`

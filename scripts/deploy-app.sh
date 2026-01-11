@@ -2,10 +2,37 @@
 set -euo pipefail
 
 # Usage:
-#   ./deploy.sh    [domain] [env]
+#   ./deploy-app.sh [env]
 #
 # Examples:
-#   ./deploy.sh  hello-app.qapil.com prod
+#   ./deploy-app.sh dev
+#   ./deploy-app.sh prod
+#
+# Domain names are configured in ./env-config.sh
+
+# Load environment configuration
+source ./env-config.sh
+
+# Parse arguments
+env="${1:-}"
+
+if [[ -z "$env" ]]; then
+  echo "❌ Usage: $0 [env]"
+  echo "Valid environments: ${!ENV_DOMAINS[@]}"
+  exit 1
+fi
+
+# Validate environment
+if ! validate_env "$env"; then
+  exit 1
+fi
+
+# Get domain from configuration
+domain=$(get_domain "$env")
+
+echo "Environment: $env"
+echo "Domain: $domain"
+echo ""
 
 echo "🚀 Deploying infrastructure with AWS SAM..."
 cd ../infra
@@ -20,15 +47,8 @@ fi
 echo "🔍 Validating SAM template..."
 sam validate --template-file app-stack.yaml
 
-BASE_NAME="hello"
-CERT_REGION="us-east-1"
-APP_REGION="us-east-1"
-
-domain="${1:-hello-app.qapil.com}"
-env="${2:-prod}"
-
-app_stack="${BASE_NAME}-app-${env}"
-cert_stack="${BASE_NAME}-cert-${env}"
+app_stack="${STACK_BASE_NAME}-app-${env}"
+cert_stack="${STACK_BASE_NAME}-cert-${env}"
 
 # Allow overriding cert stack name via env var if you want:
 cert_stack="${CERT_STACK_NAME:-$cert_stack}"
@@ -43,7 +63,7 @@ cert_arn="$(
 
 if [[ -z "${cert_arn}" || "${cert_arn}" == "None" ]]; then
   echo "ERROR: Could not read CertificateArn from cert stack '${cert_stack}' in ${CERT_REGION}."
-  echo "Run: ./deploy.sh cert ${domain} ${cert_stack}"
+  echo "Run: ./deploy-cert.sh ${domain} ${cert_stack}"
   exit 1
 fi
 
@@ -96,5 +116,5 @@ echo "✅ Infrastructure deployment complete!"
 echo "📋 Next steps:"
 echo "   1. Note the CloudFrontDomain output from SAM"
 echo "   2. Configure DNS: ${domain} CNAME → <CloudFrontDomain>"
-echo "   3. Run ./deploy-frontend.sh ${env} to upload frontend files"
+echo "   3. Run: ./deploy-frontend.sh ${env}"
 exit 0
