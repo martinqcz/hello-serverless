@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: hello - ACM cert for CloudFront (deploy to us-east-1)
+
+Parameters:
+  DomainName:
+    Type: String
+    Default: hello-app.qapil.com
+    Description: Custom domain name for CloudFront distribution
+
+Resources:
+  HelloCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref DomainName
+      ValidationMethod: DNS
+      Tags:
+        - Key: Application
+          Value: hello-serverless
+        - Key: Name
+          Value: !Sub ${DomainName}-certificate
+
+Outputs:
+  CertificateArn:
+    Value: !Ref HelloCertificate
+    Export:
+      Name: !Sub ${AWS::StackName}-CertificateArn
+
+  CertificateStatus:
+    Description: Certificate validation status (check if ISSUED before DNS propagation)
+    Value: !Sub |
+      Certificate created. Run this command to get DNS validation records:
+      aws acm describe-certificate --certificate-arn ${HelloCertificate} --region ${AWS::Region} --query "Certificate.DomainValidationOptions[0].ResourceRecord"
+
+      Add the CNAME record to your DNS provider, then wait for validation to complete.
+      Stack creation will wait up to 1 hour for certificate validation.

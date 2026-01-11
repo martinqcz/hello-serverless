@@ -5,13 +5,18 @@ echo "🗑️  Removing frontend from S3..."
 cd ..
 
 # Get stack outputs
-STACK_NAME="hello-serverless"
-REGION="us-east-1"
+BASE_NAME="hello"
+APP_REGION="us-east-1"
 
+env="${1:-prod}"
+
+STACK_NAME="${BASE_NAME}-app-${env}"
+
+# Get S3 bucked name
 echo "🔍 Fetching stack outputs..."
 BUCKET_NAME=$(aws cloudformation describe-stacks \
   --stack-name "$STACK_NAME" \
-  --region "$REGION" \
+  --region "$APP_REGION" \
   --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" \
   --output text 2>/dev/null || echo "")
 
@@ -56,4 +61,4 @@ done
 
 echo ""
 echo "✅ Frontend bucket emptied successfully!"
-echo "📋 Run ./undeploy-infrastructure.sh to remove all infrastructure"
+echo "📋 Run ./undeploy-app.sh to remove all app infrastructure"

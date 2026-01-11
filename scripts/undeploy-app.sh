@@ -4,14 +4,19 @@ set -euo pipefail
 echo "🗑️  Undeploying infrastructure..."
 cd ..
 
-STACK_NAME="hello-serverless"
-REGION="us-east-1"
+# Get stack outputs
+BASE_NAME="hello"
+APP_REGION="us-east-1"
+
+env="${1:-prod}"
+
+STACK_NAME="${BASE_NAME}-app-${env}"
 
 # Check if stack exists
 echo "🔍 Checking if stack exists..."
 STACK_STATUS=$(aws cloudformation describe-stacks \
   --stack-name "$STACK_NAME" \
-  --region "$REGION" \
+  --region "$APP_REGION" \
   --query "Stacks[0].StackStatus" \
   --output text 2>/dev/null || echo "DOES_NOT_EXIST")
 
@@ -27,14 +32,14 @@ echo ""
 echo "Step 1: Emptying S3 bucket..."
 if [ -f "scripts/undeploy-frontend.sh" ]; then
   cd scripts
-  ./undeploy-frontend.sh
+  ./undeploy-frontend.sh ${env}
   cd ..
 else
   echo "⚠️  undeploy-frontend.sh not found, attempting to empty bucket manually..."
 
   BUCKET_NAME=$(aws cloudformation describe-stacks \
     --stack-name "$STACK_NAME" \
-    --region "$REGION" \
+    --region "$APP_REGION" \
     --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" \
     --output text 2>/dev/null || echo "")
 
@@ -67,9 +72,9 @@ fi
 echo ""
 echo "Step 2: Deleting CloudFormation stack..."
 echo "⚠️  This will delete:"
-echo "   - Lambda function (hello-backend-prod)"
+echo "   - Lambda function (hello-backend-${env})"
 echo "   - API Gateway HTTP API"
-echo "   - DynamoDB table (hello)"
+echo "   - DynamoDB table (hello-tbl-${env})"
 echo "   - S3 bucket (hello-frontend-*)"
 echo "   - CloudFront distribution"
 echo "   - All associated IAM roles and policies"
@@ -84,7 +89,7 @@ fi
 echo ""
 echo "🗑️  Deleting stack: $STACK_NAME"
 cd infra
-sam delete --stack-name "$STACK_NAME" --region "$REGION" --no-prompts
+sam delete --stack-name "$STACK_NAME" --region "$APP_REGION" --no-prompts
 
 echo ""
 echo "✅ Infrastructure undeployed successfully!"
@@ -98,4 +103,5 @@ echo "   ✓ CloudFront distribution"
 echo "   ✓ IAM roles"
 echo ""
 echo "⚠️  Note: CloudFront distribution deletion can take 15-60 minutes to fully complete"
-echo "⚠️  Note: ACM certificate for hello.qapil.com was NOT deleted (manual deletion required if needed)"
+echo "⚠️  Note: You can remove the CNAME DNS record for custom domain"
+echo "⚠️  Note: ACM certificate for the custom domain was NOT deleted (manual deletion required if needed)"

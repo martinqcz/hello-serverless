@@ -1,23 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Usage:
+#   ./deploy-frontend.sh [env]
+#
+# Examples:
+#   ./deploy-frontend.sh prod
+
 echo "📦 Deploying frontend to S3..."
 cd ..
 
+BASE_NAME="hello"
+APP_REGION="us-east-1"
+
+env="${1:-prod}"
+
 # Get stack outputs
-STACK_NAME="hello-serverless"
-REGION="us-east-1"
+app_stack="${BASE_NAME}-app-${env}"
 
 echo "🔍 Fetching stack outputs..."
 BUCKET_NAME=$(aws cloudformation describe-stacks \
-  --stack-name "$STACK_NAME" \
-  --region "$REGION" \
+  --stack-name "$app_stack" \
+  --region "$APP_REGION" \
   --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" \
   --output text)
 
 DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
-  --stack-name "$STACK_NAME" \
-  --region "$REGION" \
+  --stack-name "$app_stack" \
+  --region "$APP_REGION" \
   --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" \
   --output text)
 
@@ -54,4 +64,3 @@ aws cloudfront create-invalidation \
 
 echo ""
 echo "✅ Frontend deployment complete!"
-echo "🌐 Application URL: https://hello.qapil.com (after DNS propagation)"
