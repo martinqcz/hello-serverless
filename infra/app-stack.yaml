@@ -23,6 +23,18 @@ Parameters:
     Default: hello-app
     Description: Application tag
 
+  GoogleClientId:
+    Type: String
+    Default: ""
+    Description: Google OAuth Client ID (required)
+    NoEcho: true
+
+  GoogleClientSecret:
+    Type: String
+    Default: ""
+    Description: Google OAuth Client Secret (required)
+    NoEcho: true
+
 Globals:
   Function:
     Timeout: 15
@@ -54,6 +66,7 @@ Resources:
       CorsConfiguration:
         AllowOrigins:
           - !Sub "https://${DomainName}"
+          - "http://localhost:3000"
         AllowMethods:
           - GET
           - POST
@@ -61,7 +74,9 @@ Resources:
           - DELETE
           - OPTIONS
         AllowHeaders:
-          - "*"
+          - Authorization
+          - Content-Type
+          - X-Requested-With
         MaxAge: 600
       Tags:
         Environment: !Ref Environment
@@ -82,6 +97,10 @@ Resources:
           DISABLE_SIGNAL_HANDLERS: true
           DYNAMODB_TABLE_NAME: !Ref HelloTable
           MICRONAUT_ENVIRONMENTS: !Ref Environment
+          COGNITO_USER_POOL_ID: !Ref HelloUserPool
+          COGNITO_REGION: !Ref AWS::Region
+          COGNITO_JWKS_URL: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${HelloUserPool}/.well-known/jwks.json"
+          COGNITO_ISSUER: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${HelloUserPool}"
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref HelloTable
@@ -219,6 +238,97 @@ Resources:
               StringEquals:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
 
+  # Cognito User Pool
+  HelloUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub "hello-users-${Environment}"
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+          RequireUppercase: true
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      MfaConfiguration: "OFF"
+      UserPoolTags:
+        Environment: !Ref Environment
+        Application: !Ref ApplicationTag
+
+  # Cognito User Pool Domain
+  HelloUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub "hello-${Environment}-${AWS::AccountId}"
+      UserPoolId: !Ref HelloUserPool
+
+  # Google Identity Provider
+  GoogleIdentityProvider:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      UserPoolId: !Ref HelloUserPool
+      ProviderName: Google
+      ProviderType: Google
+      ProviderDetails:
+        client_id: !Ref GoogleClientId
+        client_secret: !Ref GoogleClientSecret
+        authorize_scopes: "email profile openid"
+      AttributeMapping:
+        email: email
+        name: name
+        username: sub
+
+  # Cognito App Client
+  HelloUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: GoogleIdentityProvider
+    Properties:
+      ClientName: !Sub "hello-app-client-${Environment}"
+      UserPoolId: !Ref HelloUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_REFRESH_TOKEN_AUTH
+      SupportedIdentityProviders:
+        - Google
+      CallbackURLs:
+        - !Sub "https://${DomainName}/auth/callback"
+        - "http://localhost:3000/auth/callback"
+      LogoutURLs:
+        - !Sub "https://${DomainName}/auth/logout"
+        - "http://localhost:3000/auth/logout"
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+      AllowedOAuthFlowsUserPoolClient: true
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: hours
+        RefreshToken: days
+      PreventUserExistenceErrors: ENABLED
+
 Outputs:
   CloudFrontDomain:
     Description: CloudFront distribution domain name. Add the value to CNAME DNS record for your custom domain.
@@ -253,3 +363,28 @@ Outputs:
   ApplicationUrl:
     Description: Application URL (after DNS configuration)
     Value: !Sub "https://${DomainName}"
+
+  # Cognito Outputs
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref HelloUserPool
+    Export:
+      Name: !Sub "${AWS::StackName}-UserPoolId"
+
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !Ref HelloUserPoolClient
+    Export:
+      Name: !Sub "${AWS::StackName}-UserPoolClientId"
+
+  CognitoDomain:
+    Description: Cognito Hosted UI Domain
+    Value: !Sub "https://${HelloUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"
+    Export:
+      Name: !Sub "${AWS::StackName}-CognitoDomain"
+
+  JwksUri:
+    Description: JWKS URI for JWT validation
+    Value: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${HelloUserPool}/.well-known/jwks.json"
+    Export:
+      Name: !Sub "${AWS::StackName}-JwksUri"

@@ -257,12 +257,16 @@ This creates an ACM certificate for the domain specified in `env-config.sh`. Aft
 
 ```bash
 cd scripts
-./deploy-app.sh [env]
+./deploy-app.sh [env] [google-client-id] [google-client-secret]
 ```
 
 Examples:
 - `./deploy-app.sh prod` - Deploy to production
 - `./deploy-app.sh dev` - Deploy to development
+
+Environment variables for Cognito:
+- `GOOGLE_CLIENT_ID` - Google OAuth Client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth Client Secret
 
 This deploys:
 - Lambda function (backend API)
@@ -270,10 +274,12 @@ This deploys:
 - DynamoDB table
 - S3 bucket for frontend
 - CloudFront distribution
+- Cognito User Pool
 
 After deployment:
 1. Note the CloudFrontDomain output
 2. Create DNS CNAME: `[domain] → [CloudFrontDomain]`
+3. Update `hello-frontend/.env` with the displayed Cognito values
 
 #### 4. Build Frontend
 
@@ -321,6 +327,23 @@ bun run build
 # 5. Deploy frontend
 cd ../scripts
 ./deploy-frontend.sh prod
+```
+
+For deployment with Cognito authentication:
+
+```bash
+# Set Google OAuth credentials
+export GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
+export GOOGLE_CLIENT_SECRET="your-client-secret"
+
+# Deploy
+./deploy-app.sh prod
+
+# Note the Cognito outputs and update hello-frontend/.env:
+# VITE_COGNITO_USER_POOL_ID=...
+# VITE_COGNITO_CLIENT_ID=...
+# VITE_COGNITO_REGION=...
+# VITE_COGNITO_DOMAIN=...
 ```
 
 For subsequent updates:

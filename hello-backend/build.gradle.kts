@@ -27,6 +27,7 @@ dependencies {
     ksp("io.micronaut:micronaut-http-validation")
     ksp("io.micronaut.serde:micronaut-serde-processor")
     ksp("io.micronaut.validation:micronaut-validation-processor")
+    ksp("io.micronaut.security:micronaut-security-annotations")
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut.aws:micronaut-aws-lambda-events-serde")
     implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
@@ -55,6 +56,7 @@ dependencies {
 
     implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingVersion")
     implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
+    implementation("io.micronaut.security:micronaut-security-jwt")
     testImplementation("io.strikt:strikt-core:$striktVersion")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
 }

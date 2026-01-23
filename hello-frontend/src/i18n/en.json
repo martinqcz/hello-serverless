@@ -3,6 +3,13 @@
         "en": "English",
         "fr": "Francais"
     },
+    "menu": {
+        "anonymous": "Anonymous",
+        "profile": "Profile",
+        "language": "Language",
+        "signIn": "Sign in with Google",
+        "signOut": "Sign Out"
+    },
     "greeting": "Hello!",
     "welcome_to": "Welcome to"
 }

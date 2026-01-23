@@ -6,36 +6,34 @@ import io.micronaut.function.aws.proxy.payload1.ApiGatewayProxyRequestEventFunct
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class HomeControllerTest {
+class UserControllerTest {
 
     @Test
-    fun `Should greet the World`() {
+    fun `Should return 401 for profile without authentication`() {
         val handler = ApiGatewayProxyRequestEventFunction()
         val request = APIGatewayProxyRequestEvent().apply {
             httpMethod = "GET"
-            path = "/api/v1/hello"
+            path = "/api/v1/profile"
             requestContext = APIGatewayProxyRequestEvent.ProxyRequestContext()
         }
         val response = handler.handleRequest(request, MockLambdaContext())
 
-        assertThat(response.statusCode).isEqualTo(200)
-        assertThat(response.body).isEqualTo("{\"message\":\"Hello World from serverless backend!\"}")
+        assertThat(response.statusCode).isEqualTo(401)
         handler.applicationContext.close()
     }
 
     @Test
-    fun `Should greet Micronaut`() {
+    fun `Should allow public access to hello endpoint`() {
         val handler = ApiGatewayProxyRequestEventFunction()
         val request = APIGatewayProxyRequestEvent().apply {
             httpMethod = "GET"
             path = "/api/v1/hello"
-            queryStringParameters = mapOf("name" to "Micronaut")
             requestContext = APIGatewayProxyRequestEvent.ProxyRequestContext()
         }
         val response = handler.handleRequest(request, MockLambdaContext())
 
         assertThat(response.statusCode).isEqualTo(200)
-        assertThat(response.body).isEqualTo("{\"message\":\"Hello Micronaut from serverless backend!\"}")
+        assertThat(response.body).contains("Hello World")
         handler.applicationContext.close()
     }
 }

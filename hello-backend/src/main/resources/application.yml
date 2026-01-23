@@ -1,6 +1,24 @@
 micronaut:
   application:
     name: hello-backend
+  security:
+    enabled: true
+    authentication: bearer
+    token:
+      jwt:
+        enabled: true
+        signatures:
+          jwks:
+            cognito:
+              url: ${COGNITO_JWKS_URL:}
+    intercept-url-map:
+      - pattern: /api/v1/hello
+        http-method: GET
+        access:
+          - isAnonymous()
+      - pattern: /api/v1/profile
+        access:
+          - isAuthenticated()
 
 dynamodb:
   table-name: hello

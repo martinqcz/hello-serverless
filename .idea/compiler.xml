@@ -9,6 +9,7 @@
         <option name="micronaut.processing.incremental" value="true" />
         <option name="micronaut.processing.module" value="hello-backend" />
         <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.security/micronaut-security-annotations/4.15.1/e15d339f2d424b648ae2bb8c85a7c9bf8153c3d9/micronaut-security-annotations-4.15.1.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.serde/micronaut-serde-processor/2.16.2/fdc562bb3cfe8a52b16d157d90b344903dedc21a/micronaut-serde-processor-2.16.2.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.validation/micronaut-validation-processor/4.12.0/ebab289b2fe0f346f46cfb17407c0df4310ac823/micronaut-validation-processor-4.12.0.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.serde/micronaut-serde-api/2.16.2/891d3467372c9520fadd34fac3da1fd5d1f2f15e/micronaut-serde-api-2.16.2.jar" />

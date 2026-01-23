@@ -1,0 +1,23 @@
+# Test configuration - enable security with mock secret
+micronaut:
+  security:
+    enabled: true
+    authentication: bearer
+    token:
+      jwt:
+        enabled: true
+        signatures:
+          # Use secret-based signing for tests instead of JWKS
+          secret:
+            test-secret:
+              secret: "test-secret-key-for-unit-tests-only-minimum-256-bits-required"
+              jws-algorithm: HS256
+          # Explicitly disable JWKS in test environment
+          jwks:
+            cognito:
+              url: ""
+
+# Cognito configuration for tests
+cognito:
+  user-pool-id: test-pool
+  region: us-east-1
