@@ -1,0 +1,26 @@
+# Agent OS Standards Index
+
+backend:
+  api-path-convention:
+    description: REST endpoint versioning and CloudFront routing path structure
+  controller-structure:
+    description: Micronaut controller class structure with open modifier and annotations
+  logging-pattern:
+    description: KotlinLogging with lazy evaluation in companion objects
+
+frontend:
+  api-client-import:
+    description: Centralized axios instance from @/plugins for HTTP requests
+  component-naming:
+    description: PascalCase files with kebab-case template usage
+  pinia-store-access:
+    description: Store access pattern with const store = useXxxStore()
+  script-setup-pattern:
+    description: Vue 3 script setup with TypeScript for all components
+
+scripts:
+  environment-config-pattern:
+    description: Centralized env-config.sh with domain maps and validation functions
+  stack-naming-convention:
+    description: CloudFormation stack naming: {base}-{resource}-{env}
+
