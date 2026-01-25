@@ -17,6 +17,11 @@ set -euo pipefail
 # Load environment configuration
 source ./env-config.sh
 
+# Load environment private configuration
+if [ -f private.env ]; then
+  source private.env
+fi
+
 # Parse arguments
 env="${1:-}"
 google_client_id="${2:-${GOOGLE_CLIENT_ID:-}}"
